@@ -35,31 +35,31 @@ libusb_device_handle *get_handle(int id) {
     }
 }
 
-// int init_device(libusb_device_handle *handle) {
-//     struct libusb_device_descriptor desc;
-//     libusb_get_device_descriptor(libusb_get_device(handle), &desc);
-//     uint8_t buffer[] = {
-//         // clang-format off
-//         0x28, 0x74, 0x00, 0x00,
-//         0x38, 0x18, 0x00, 0x00,
-//         0xb0, 0xd3, 0xb9, 0xdb,
-//         0x64, 0x24, 0xcf, 0x77, // clang-format on
-//     };
-//     int transferred = libusb_control_transfer(
-//         handle,
-//         LIBUSB_ENDPOINT_OUT | LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE,
-//         0xbc,
-//         0x0000,
-//         0x0000,
-//         buffer,
-//         sizeof(buffer),
-//         control_timeout_ms
-//     );
-//     if (transferred < sizeof(buffer)) {
-//         printf("init_device: control transfer failed: %d\n", transferred);
-//         return -1;
-//     }
-// }
+int init_device(libusb_device_handle *handle) {
+    uint8_t buffer[] = {
+        // clang-format off
+        0x28, 0x74, 0x00, 0x00,
+        0x38, 0x18, 0x00, 0x00,
+        0xb0, 0xd3, 0xb9, 0xdb,
+        0x64, 0x24, 0xcf, 0x77, // clang-format on
+    };
+    int transferred = libusb_control_transfer(
+        handle,
+        LIBUSB_ENDPOINT_OUT | LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE,
+        0xbc,
+        0x0000,
+        0x0000,
+        buffer,
+        sizeof(buffer),
+        control_timeout_ms
+    );
+    if (transferred < sizeof(buffer)) {
+        printf("init_device: control transfer failed: %d\n", transferred);
+        return -1;
+    }
+
+    return 0;
+}
 
 bool img_capture(int id) {
     printf("img_capture(%d) not implemented\n", id);
@@ -83,7 +83,7 @@ int img_read(int id, unsigned char *buffer, int count, int timeout_ms) {
 
 int img_init() {
     libusb_device **list;
-    int status = libusb_init_context(&ctx, NULL, 0);
+    int status = libusb_init(&ctx);
     if (status != LIBUSB_SUCCESS) {
         printf("libusb_init_context failed: %d\n", status);
         return -1;
@@ -134,6 +134,12 @@ int img_init() {
             continue;
         }
 
+        status = init_device(handles[found]);
+        if (status != 0) {
+            printf("failed to init device: %d", status);
+            continue;
+        }
+
         found++;
     }
 
@@ -154,21 +160,7 @@ int img_readAsy(int id, unsigned char *buffer, int count, int timeout_ms) {
     int status = libusb_control_transfer(
         handle,
         LIBUSB_ENDPOINT_OUT | LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE,
-        0xb3,
-        0x0000,
-        0x0000,
-        NULL,
-        0,
-        control_timeout_ms
-    );
-    if (status < 0) {
-        printf("img_readAsy: control transfer failed: %d\n", status);
-        return status;
-    }
-    status = libusb_control_transfer(
-        handle,
-        LIBUSB_ENDPOINT_OUT | LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE,
-        0xb1,
+        0xb8,
         0x0000,
         0x0000,
         NULL,
@@ -203,9 +195,9 @@ bool img_set_exp(int id, int16_t exposure) {
     int status = libusb_control_transfer(
         handle,
         LIBUSB_ENDPOINT_OUT | LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE,
-        0xb4,
+        0xb7,
         exposure,
-        0x0000,
+        0x0009,
         NULL,
         0,
         control_timeout_ms
@@ -227,9 +219,9 @@ bool img_set_gain(int id, int16_t gain) {
     int status = libusb_control_transfer(
         handle,
         LIBUSB_ENDPOINT_OUT | LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE,
-        0xb5,
+        0xb7,
         gain,
-        0x0000,
+        0x0035,
         NULL,
         0,
         control_timeout_ms
@@ -272,12 +264,29 @@ bool img_set_wh(int id, int16_t w, int16_t h) {
         return -1;
     }
 
+    // Set height
     int status = libusb_control_transfer(
         handle,
         LIBUSB_ENDPOINT_OUT | LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE,
-        0xb7,
-        h,
-        w,
+        0xba,
+        h - 1,
+        0x0003,
+        NULL,
+        0,
+        control_timeout_ms
+    );
+    if (status < 0) {
+        printf("img_set_wh: control transfer failed: %d\n", status);
+        return false;
+    }
+
+    // Set width
+    status = libusb_control_transfer(
+        handle,
+        LIBUSB_ENDPOINT_OUT | LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE,
+        0xba,
+        w - 1,
+        0x0004,
         NULL,
         0,
         control_timeout_ms

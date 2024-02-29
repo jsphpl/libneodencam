@@ -33,8 +33,10 @@ go run main.go
 5. Install the following packages:
     - gcc
     - cmake
+    - make
     - libusb
     - pkg-config
+    - git
 6. Check out this repository, build and install the camera driver:
     ```sh
     mkdir build

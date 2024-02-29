@@ -14,16 +14,23 @@ import (
 )
 
 const (
-	width  int = 512
-	height int = 512
+	width  int = 1024
+	height int = 1024
 )
 
 func main() {
-	cams := C.img_init()
+	cams := int(C.img_init())
 	fmt.Printf("Found %d cameras\n", cams)
 
-	for i := range cams {
-		img, err := readImage(int(i))
+	for i := 0; i < cams; i++ {
+		err := setupCamera(i)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+		time.Sleep(100 * time.Millisecond)
+
+		img, err := readImage(i)
 		if err != nil {
 			fmt.Println(err)
 			continue
@@ -33,30 +40,34 @@ func main() {
 	}
 }
 
-func readImage(cam int) (*image.Gray, error) {
+func setupCamera(cam int) error {
 	success := C.img_set_wh(C.int(cam), C.short(width), C.short(height))
 	if !success {
-		return nil, fmt.Errorf("error during img_set_wh")
+		return fmt.Errorf("error during img_set_wh")
 	}
-	time.Sleep(10 * time.Millisecond)
+	time.Sleep(50 * time.Millisecond)
 
 	success = C.img_set_lt(C.int(cam), C.short(0), C.short(0))
 	if !success {
-		return nil, fmt.Errorf("error during img_set_lt")
+		return fmt.Errorf("error during img_set_lt")
 	}
-	time.Sleep(10 * time.Millisecond)
+	time.Sleep(50 * time.Millisecond)
 
-	// success = C.img_set_exp(C.int(cam), C.short(45))
-	// if !success {
-	// 	return nil, fmt.Errorf("error during img_set_exp")
-	// }
-	// time.Sleep(10 * time.Millisecond)
+	success = C.img_set_exp(C.int(cam), C.short(100))
+	if !success {
+		return fmt.Errorf("error during img_set_exp")
+	}
+	time.Sleep(50 * time.Millisecond)
 
-	// success = C.img_set_gain(C.int(cam), C.short(36))
-	// if !success {
-	// 	return nil, fmt.Errorf("error during img_set_gain")
-	// }
-	time.Sleep(100 * time.Millisecond)
+	success = C.img_set_gain(C.int(cam), C.short(1000))
+	if !success {
+		return fmt.Errorf("error during img_set_gain")
+	}
+
+	return nil
+}
+
+func readImage(cam int) (*image.Gray, error) {
 
 	var buf = make([]byte, width*height, width*height)
 	ret := C.img_readAsy(C.int(cam), (*C.uint8_t)(unsafe.Pointer(&buf[0])), C.int(width*height), 2000)
