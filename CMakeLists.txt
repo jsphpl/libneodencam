@@ -18,3 +18,4 @@ include(GNUInstallDirs)
 install(TARGETS neodencam
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install(FILES 90-neodencam.rules DESTINATION /etc/udev/rules.d/)
