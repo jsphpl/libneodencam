@@ -6,21 +6,21 @@ Tested on Linux. Might also compile on Windows, probably depending on the availa
 
 **Note: This is not a v4l driver.** It still needs the Neoden4Camera java class in OpenPNP. Turning this into a v4l driver might be worth a shot though.
 
-## Building
+## Build & Install
 
 ```sh
 mkdir build
 cd build
 cmake ..
 make
+sudo make install
 ```
 
 ## Testing
 
-Requires golang
+Requires golang. First build the shared library. It will be placed in ./build. Then run the following command. It will take a photo with each connected camera and save it to cwd.
 
 ```sh
-# First, build the shared library. It will be placed in ./build
 go run main.go
 ```
 
@@ -29,7 +29,7 @@ go run main.go
 1. Image the built-in SSD using [clonezilla](https://clonezilla.org/) from a bootable USB – just in case you mess up and want to revert to stock.
 2. Replace the disk with a bigger (>=32GB) mSATA SSD. Keep the old SSD in a safe place.
 3. While you're at it, upgrade the machine from its 2GB to 4GB RAM (single SO-DIMM DDR3 module)
-4. Install a (lightweight) linux distro of your choice.
+4. Install a (lightweight) linux distro of your choice (tested on lubuntu 23.10)
 5. Install the following packages:
     - gcc
     - cmake
@@ -37,11 +37,5 @@ go run main.go
     - libusb
     - pkg-config
     - git
-6. Check out this repository, build and install the camera driver:
-    ```sh
-    mkdir build
-    cd build
-    cmake ..
-    make
-    sudo make install
-    ```
+6. Check out this repository, build and install the camera driver according to the instructions above
+7. Install the `90-neodencam.rules` file from this repo under `/etc/udev/rules/`, then `udevadm control --reload` and maybe reboot. This allows unprivileged users to access the USB cameras.
