@@ -182,7 +182,7 @@ int img_readAsy(int id, unsigned char *buffer, int count, int timeout_ms) {
         return status;
     }
 
-    return 0;
+    return 1;
 }
 
 bool img_set_exp(int id, int16_t exposure) {

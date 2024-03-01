@@ -45,6 +45,12 @@ int img_init();
 
 /**
  * @brief Read an image of given byte size into the buffer.
+ *
+ * @param id camera ID
+ * @param buffer pointer to the buffer to store the image in (at least `count` long)
+ * @param count number of bytes to read
+ * @param timeout_ms number of milliseconds to wait for the bulk transfer to complete
+ * @return 1 on success (weirdly?)
 */
 int img_readAsy(int id, unsigned char *buffer, int count, int timeout_ms);
 
