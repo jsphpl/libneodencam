@@ -68,10 +68,9 @@ func setupCamera(cam int) error {
 }
 
 func readImage(cam int) (*image.Gray, error) {
-
 	var buf = make([]byte, width*height, width*height)
 	ret := C.img_readAsy(C.int(cam), (*C.uint8_t)(unsafe.Pointer(&buf[0])), C.int(width*height), 2000)
-	if ret != 0 {
+	if ret != 1 {
 		return nil, fmt.Errorf("error reading image from camera %d: %d", cam, ret)
 	}
 
