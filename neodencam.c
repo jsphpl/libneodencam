@@ -54,8 +54,23 @@ int init_device(libusb_device_handle *handle) {
         control_timeout_ms
     );
     if (transferred < sizeof(buffer)) {
-        printf("init_device: control transfer failed: %d\n", transferred);
+        printf("init_device: control transfer 0 failed: %d\n", transferred);
         return -1;
+    }
+
+    int status = libusb_control_transfer(
+        handle,
+        LIBUSB_ENDPOINT_OUT | LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE,
+        0xb9,
+        0x0000,
+        0x0000,
+        NULL,
+        0,
+        control_timeout_ms
+    );
+    if (status != LIBUSB_SUCCESS) {
+        printf("init_device: control transfer 3 failed: %d\n", status);
+        return status;
     }
 
     return 0;
@@ -136,7 +151,7 @@ int img_init() {
 
         status = init_device(handles[found]);
         if (status != 0) {
-            printf("failed to init device: %d", status);
+            printf("failed to init device: %d\n", status);
             continue;
         }
 
@@ -167,7 +182,7 @@ int img_readAsy(int id, unsigned char *buffer, int count, int timeout_ms) {
         0,
         control_timeout_ms
     );
-    if (status < 0) {
+    if (status != LIBUSB_SUCCESS) {
         printf("img_readAsy: control transfer failed: %d\n", status);
         return status;
     }
@@ -177,9 +192,13 @@ int img_readAsy(int id, unsigned char *buffer, int count, int timeout_ms) {
     status = libusb_bulk_transfer(
         handle, LIBUSB_ENDPOINT_IN | BULK_EP, buffer, count, &transferred, timeout_ms
     );
-    if (status < 0 || transferred != count) {
+    if (status != LIBUSB_SUCCESS) {
         printf("img_readAsy: bulk transfer failed: %d\n", status);
-        return status;
+        return 0;
+    }
+    if (transferred != count) {
+        printf("img_readAsy: bulk transfer incomplete: %d/%d\n", transferred, count);
+        // return 0;
     }
 
     return 1;

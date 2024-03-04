@@ -53,13 +53,13 @@ func setupCamera(cam int) error {
 	}
 	time.Sleep(50 * time.Millisecond)
 
-	success = C.img_set_exp(C.int(cam), C.short(45))
+	success = C.img_set_exp(C.int(cam), C.short(20))
 	if !success {
 		return fmt.Errorf("error during img_set_exp")
 	}
 	time.Sleep(50 * time.Millisecond)
 
-	success = C.img_set_gain(C.int(cam), C.short(36))
+	success = C.img_set_gain(C.int(cam), C.short(20))
 	if !success {
 		return fmt.Errorf("error during img_set_gain")
 	}
