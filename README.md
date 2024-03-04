@@ -62,6 +62,8 @@ On the stock mainboard, the machine interface is connected to `/dev/ttyS1` and t
 
 #### Cameras
 
+Make sure there are no other USB devices on the same bus to which the cameras are connected. You can use `lsusb` to figure that out. A Wifi adapter connected to one of the side ports caused torn/broken images on my machine.
+
 In order to use both cameras, you need to add a `Neoden4Camera` and then two `Neoden4SwitcherCamera` instances, one for the head and one for the bottom camera. They both reference the Neoden4Camera instance in their config and each have an individual ID, configured under _Switcher Number_ in _Driver Settings_.
 
 -   Camera IDs: `0` and `1` (contrary to 1 and 5 in the Windows driver)
