@@ -50,7 +50,7 @@ go run main.go
     - libusb-1.0
 2. Check out this repository, build and install the camera driver according to the instructions above
 3. Install OpenJDK v8. Serial communication between OpenPNP and the Neoden controller board did not work for me on Java v11
-4. Install OpenPNP as per the official instructions
+4. Use [my fork of OpenPNP](https://github.com/jsphpl/openpnp/tree/feature/libneodencam) as long as the corresponding [PR](https://github.com/openpnp/openpnp/pull/1604) hasn't been merged.
 
 ### 3. Configuration
 
